@@ -1,0 +1,143 @@
+---
+title: "Types of variable "
+author: "KMK"
+date: "2023-10-13"
+output: powerpoint_presentation  
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      comment = "",
+                      message = FALSE)
+knitr::opts_knit$set(root.dir = "D:/docs/Burnet Statistics training/docs")
+```
+
+```{r Load, include=FALSE}
+getwd()
+rm(list = ls())
+data <- haven::read_dta("d:/docs/Burnet Statistics training/data_raw/var_type.dta")
+library(tidyverse)
+library(knitr)
+```
+
+## Variables  
+- Characteristics that varies; Not constant
+- **Values** Can be text or number
+- Mostly used codes for the text values
+- Variables in columns 
+- Values of observations in row
+
+```{r names, include=F}
+names(data)
+```
+
+## First seven lines of data from a study of outcome after diagnosis of tuberculosis
+```{r table, include=T}
+kable(data, col.names = c("ID","Hospital","Date of birth","Gender","Date of diagnosis","Weight(kg)","Smear result","Culture result","Skin test diameter (mm)","Alive after 6 months?","Days of hospital stayed" ,"Completed age at diagnosis", "Age group"),
+      align = c("l","r","c","l","c","r","l","l","r","l","r","r","l"))
+```
+
+## Types of Variable  
+- **Categorical variables**
+  + Binary variable
+  + Nominal variable
+  + Ordinal variable
+- **Numerical variables**
+  + Discrete variable
+  + Continuous variable
+  
+## Binary variable
+```{r binary, include=T}
+kable(data[,c(1,8,10)],col.names = c("ID","Culture results","Alive after 6 months"),align = c("l","l","l"))
+```
+
+## Nominal variable
+```{r nominal, include=T}
+data %>% select(1,2,4) %>% kable(col.names = c("ID","Hospital name","Gender"), align = c("l","r","l"))
+
+```
+  
+
+## Ordinal variable
+```{r ordinal, include=T}
+data %>% select(1,7) %>% 
+  kable(col.names = c("ID","Smear result"), align = c("l","l"))
+```
+
+## Discrete variable
+```{r discrete, include=T}
+data %>% select(1,11) %>% kable(col.names = c("ID","Days hospitalized"), align = c("l","r"))
+```
+
+## Continuous variable
+```{r continuous, include=T}
+data %>% select(1,6,9,12) %>% kable(col.names = c("ID","Weight in kilogram","Skin test diameter(mm)","Completed age(years)"), align = c("l","r","r","r"))
+```
+
+## Classifcation of variable
+- can be **numerical** or **categorical**
+- includes:
+  + Recorded variables
+  + Rates
+  + Derived variable
+  + Transformed variable
+  
+## Rates
+- occurrence over time
+- usually follow exponential distribution
+- not cover in my topics
+
+## Derived variable
+- calculated or categorized from recorded variable
+- categorized based on threshold value
+- derived from reference curve/ standard values in population
+
+## Calculated or categorized from recorded variable
+```{r derived, include=T}
+data %>%  select(1,3,5,12,13) %>% kable(align = c("l","c","c","r","l"))
+```
+
+## Categorised baased on threshold values
+
+|Derived variables|Original variable|
+|:---------------:|:---------------:|
+|Low birth-weight|Birth-weight|
+|  Yes|  <2500g|
+|  No|  >=2500g|
+|Vitamin A status|Serum retinol level|
+|  Severe deficiency|  <0.35umol/l|
+|  Mild/moderate deficiency|  0.35-0.69umol/l|
+|  Normal|  >=0.70umol/l|
+
+## Derived from reference curve
+![Growth charts for boys\(Image resource : CDC)](d:/docs/Burnet Statistics training/misc/CDC growth chart.png)
+
+
+## Transformed variable
+- Variables with observations that violates assumptions
+  * Normality assumption
+  * Linear assumption
+  * Homogeneity assumption
+- Types of transformation
+  * Logarithmic ($\log_e{x}$)
+  * Reciprocal ($\frac{1}{x}$)
+  * Square root ($\sqrt{x}$)
+  * Square/cubic ($x^n$)
+  
+## Distinguishing Outcome and exposure variables  
+- To choose appropriate data display and statistical method
+- Outcome : seek to understand variation or occurrence
+- Exposure : influence size or occurrence of outcome
+- Statistical analysis : quantify the magnitude of association between exposures  and outcomes
+
+## Examples of Outcomes and Exposures  
+
+|Outcome|Exposure|
+|:------|--------:|
+|Baby born with low birth weight (yes, no)| Mother smoked during pregnancy (yes, no)|
+|Anthropometric status at 1 year of age (weight-for-age z-score)|Duration of exclusive breastfeeding (weeks)|
+|Number of diarrhoea episodes experienced in a year|Access to clean water supply (yes, no)|
+|Child develops leukaemia (yes, no)|Proximity to nuclear power station (miles)|
+|Survival time (months) following diagnosis of lung cancer|Socio-economic status(6 groups)|
+
+## **Thank you**
