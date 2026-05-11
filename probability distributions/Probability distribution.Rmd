@@ -1,0 +1,135 @@
+---
+title: "Probability Distributions"
+author: "Kaung Myat Khant"
+date: "`r Sys.Date()`"
+output: 
+    powerpoint_presentation:
+        keep_md: TRUE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      comment = FALSE)
+```
+
+## What is a probability distribution?
+
+-   Mathematical model that characterizes a *population*
+
+-   Describes all possible values of a random variable
+
+-   Describes likelihood associated with each value
+
+## Main categories of probability distribution
+
+1.  Discrete probability distributions
+    -   Binomial distribution
+
+    -   Poisson distribution
+2.  Continuous probability distributions
+    -   Normal distribution
+
+    -   t distribution
+
+    -   F distribution
+
+    -   Chi square distribution
+
+## Two rules of a valid probability distribution
+
+-   Probability of any event cannot be negative
+
+-   Total sum of all probabilities = 1 (Total area under the curve = 1)
+
+## Binomial distribution
+
+-   Describes the number of successes in a fixed number of trial (n)
+
+-   Each trial has only two *mutually exclusive* outcomes (p,1-p)
+
+-   Used in analysing proportions or risk (dead/alive; treatment success/fail)
+
+-   *Probability* of success (p) must be *constant* for every trial
+
+-   *Outcome* of one trial must be *independent* of the result of another trial
+
+## Parameters of binomial distribution
+
+-   Mean (measure of central tendency) is $\mu = n \times p$
+
+-   Variance (measure of spread) is $\sigma^2 = n \times p \times (1-p)$
+
+-   Parameters are *number of trials (n)* and *probability of success (p)*
+
+## Binomial distribution formuala
+
+$$P(X = x) = {}_nC_x \cdot p^x \cdot (1-p)^{n-x}$$
+
+## Example of binomial distribution
+
+-   Let's flip a fair coin for 10 times and the probability of head is *p*
+
+-   p = 0.5; n = 10
+
+-   $\mu = p \times n = 5$
+
+-   $\sigma^2 = n \cdot p \cdot (1-p) = 2.5$ ; $\sigma = 1.581$
+
+```{r setBinom, include=FALSE}
+# Load library
+library(ggplot2)
+
+# 1. Define data in a data frame
+n <- 10
+p <- 0.5
+df <- data.frame(
+    x = 0:n,
+    y = dbinom(0:n, size = n, prob = p)
+)
+```
+
+## Data
+
+```{r dataBinom, include=TRUE}
+head(df, 11) |> knitr::kable()
+```
+
+
+## Binomial Distribution  
+
+```{r curveBinom, include=TRUE}
+ggplot(df, aes(x = x, y = y)) +
+    geom_bar(stat = "identity", fill = "steelblue", color = "white") +
+    geom_vline(xintercept = 5, color = "red", linetype = "dashed", size = 1) +
+    geom_vline(xintercept = c(5 - 1.6, 5 + 1.6), 
+               color = "darkgreen", linetype = "dotted", size = 1) +
+    labs(title = paste("Binomial Distribution Curve of flipping a fair coin \n (n =", n, ", p =", p, ")"),
+         subtitle = paste("Mean (Red):", 5, "| Std Dev (Green):", 1.6),
+         x = "Number of Heads",
+         y = "Probability") +
+    scale_x_continuous(labels = 0:n, breaks = 0:n)+
+    theme_minimal()
+```
+
+## Binomial distribution of an unfair coin
+
+```{r unfairCoin, include=TRUE}
+n <- 10
+p <- 0.8
+df <- data.frame(
+    x = 0:n,
+    y = dbinom(0:n, size = n, prob = p)
+)
+
+
+ggplot(df, aes(x = x, y = y)) +
+    geom_bar(stat = "identity", fill = "steelblue", color = "white") +
+    labs(title = paste("Binomial Distribution Curve of flipping an unfair coin  \n (n =", n, ", p =", p, ")"),
+         x = "Number of Heads",
+         y = "Probability") +
+    scale_x_continuous(labels = 0:n, breaks = 0:n)+
+    theme_minimal()
+```
+
