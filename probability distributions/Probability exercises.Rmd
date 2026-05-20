@@ -1,0 +1,59 @@
+---
+title: "Probability exercises"
+author: "Kaung Myat Khant"
+date: "`r Sys.Date()`"
+output: 
+    powerpoint_presentation:
+        keep_md: TRUE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Easy 
+
+1.  In a population where blood types are mutually exclusive categories, find the probability of a person being Type A OR Type B if the probability of Type A is 0.40 and the probability of Type B is 0.10.
+
+2.  In a study of 318 subjects, find the probability that a randomly selected person has an early age of onset (E) or no family history of mood disorders (A) if P(E)=0.4434, P(A)=0.1981, and the joint probability P(E∩A)=0.0881.
+
+
+## Easy  
+
+3.  Find the probability of a subject having an early onset (E) AND a negative family history (A) if the probability of early onset P(E)=0.4434 and the probability of a negative family history given early onset P(A∣E)=0.1986.
+
+4.  In a class of 100 students where wearing glasses (E) and being a boy (B) are independent, find the probability of a student being a boy and wearing glasses if P(B)=0.40 and P(E)=0.40.
+
+## Easy  
+
+5.  In a hospital with 1200 admissions where 750 are private (A), find the probability of a non-private admission if the probability of a private admission P(A)=0.625.
+
+6.  In an Alzheimer's screening, find the "sensitivity" (the probability of a positive test result T given the disease D) if the number of diseased subjects with a positive test is 436 and the total number of diseased subjects is 450.
+
+
+## Difficult
+
+-   Binomial formula: $P(X=x) = {}^nC_x p^x q^{n-x}$
+
+-   Data from the North Carolina State Center for Health Statistics show that 14 percent of mothers admit to smoking during pregnancy (p=0.14).
+
+-   In a random sample of 10 mothers (n=10), continue next slide...  
+
+
+## Difficult  
+
+-   what is the probability that exactly four of them admitted to smoking?
+
+-   what is the probability that more than four of them admitted to smoking?
+
+-   what is the probability that four or more of them admitted to smoking?
+
+-   what is the probability that less than four of them admitted to smoking?
+
+-   what is the probability that four or less of them admitted to smoking?
+
+
+## Difficult  
+
+-   Combination values:  
+    -   $^{10}C_0 = 120$, $^{10}C_1 = 10$, $^{10}C_2 = 45$ , $^{10}C_3 = 120$, $^{10}C_4 = 210$, $^{10}C_5 = 252$ , $^{10}C_6 = 210$ , ...symmetric
