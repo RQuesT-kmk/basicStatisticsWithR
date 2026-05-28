@@ -1,0 +1,269 @@
+---
+title: "Tidy data"
+author: "KMK"
+date: "2023-10-24"
+output: powerpoint_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      comment = "")
+knitr::opts_knit$set(root.dir = "d:/docs/Burnet Statistics training/output")
+```
+
+```{r wd, include=F}
+getwd()
+```
+
+## Tidy data
+
+> ***"Happy families are all alike;every unhappy family is unhappy in its own way."*** --- **Leo Tolstoy**
+
+> ***Tidy datasets are all alike but every messy dataset is messy in its own way.***
+
+## Tidy data: A standardized way to link structure of a dataset with its semantics
+- 80% of data analysis is spent on cleaning and preparing data
+
+
+## Tidy data: A standardized way to link structure of a dataset with its semantics
+- Data structure
+    - made up of rows and columns
+    - columns almost always labelled
+
+
+
+```{r datastructure, include=F}
+person <- c("John Smith","Jane Doe","Mary Johnson")
+treatmenta <- c("_","16","3")
+treatmentb <- c("2","11","1")
+tab1 <- data.frame(person,treatmenta,treatmentb)
+treatment <- c("treatmenta","treatmentb")
+`John Smith` <- c("_","2")
+`Jane Doe` <- c("16","11")
+`Mary Johnson` <- c("3","1")
+tab2 <- data.frame(treatment,`John Smith`,`Jane Doe`,`Mary Johnson`)
+name <- rep(c("John Smith","Jane Doe","Mary Johnson"),2) ; name
+treatment <- rep(c("a","b"),each=3); treatment
+result <- c("_","16","3","2","11","1"); result
+tab3 <- data.frame(name,treatment,result)
+```
+
+## Table 1
+```{r tab1, include=T}
+knitr::kable(tab1, align = c("l","r","r"))
+```
+
+## Table 2
+```{r tab2, include=T}
+knitr::kable(tab2, align = c("l","r","r","r"))
+```
+
+
+
+## Tidy data: A standardized way to link structure of a dataset with its semantics  
+- Data semantics
+  - every value belongs to a *variable* and an *observation*
+  - A variable contains all values that measure the same underlying attribute across units
+  - An observation contains all values measured on the same unit across attributes
+
+## Table 3
+```{r tab3, include=T}
+knitr::kable(tab3, align = c("l","l","r"))
+```  
+    
+## Tidy data: A standardized way to link structure of a dataset with its semantics  
+- Data semantics
+  - it is easier to describe functional relationship between variables
+  - it is easier to make comparison between group of comparison
+
+|id|sex|weight|height|
+|:---|:---|---:|---:|
+|1|Male|65|168|
+|2|Female|55|170|
+|3|Female|38|168|
+|4|Male|44|172|
+
+## Tidy data
+1.Each variable forms a column.
+2.Each observation forms a row.
+3.Each type of observational unit forms a table.  
+
+```{r tabtidy, include=T}
+knitr::kable(tab3, align = c("l","l","r"))
+```
+
+## Common problems of messy datasets
+- Column headers are values not variable names.
+- Multiple variables are stored in one column.
+- Variables are stored in both rows and columns.
+- Multiple types of observational units are stored in the same table.
+- A single observational unit is stored in multiple tables.
+
+**Use melting,string splitting, and casting**
+
+## Column headers are values not variable names
+
+|religion|<10k|10-20k|20-30k|30-40k|40-50k|50-75k|
+|:---|---:|---:|---:|---:|---:|---:|
+Agnostic|27|34|60|81|76|137|
+Atheist|12|27|37|52|35|70|
+Buddhist|27|21|30|34|33|58|
+Catholist|418|617|732|670|638|1116|
+
+
+## Melt the columns into rows
+
+|religion|income|frequency|
+|:---|:---|---:|
+|Agnostic|<10k|27|
+|Agonistic|10-20k|34|
+|Agonistic|20-30k|60| 
+
+## Multiple variables are stored in one column
+|country|year|m014|m1524|m2534|f014|
+|:---|---:|---:|---:|---:|---:|
+|AD|2000|0|0|1|_|
+|AE|2000|2|4|4|3|
+|AF|2000|52|228|183|93|
+
+## First, melt the data
+|country|year|column|cases|
+|:---|---:|:---:|---:|
+|AD|2000|m014|0|
+|AD|2000|m1524|10|
+|AD|2000|m2534|12|
+|AE|2000|f014|3|
+
+## Then, split the string column
+|country|year|sex|age|cases|
+|:---|---:|:---|:---|---:|
+|AD|2000|m|0-14|0|
+|AD|2000|m|15-24|10|
+|AD|2000|m|25-34|12|
+|AE|2000|f|0-14|3|
+
+## Variables are stored in both rows and columns
+|id|year|month|element|d1|d2|d3|d4|d5|
+|:---|:---:|---:|:---|---:|---:|---:|---:|---:|
+|MX17004|2010|1|tmax|-|-|-|-|-|
+|MX17004|2010|1|tmin|-|-|-|-|-|
+|MX17004|2010|2|tmax|-|27.3|24.1|-|-|
+|MX17004|2010|2|tmin|-|14.4|14.4|-|-|
+|MX17004|2010|3|tmax|-|-|-|-|32.1|
+|MX17004|2010|3|tmin|-|-|-|-|14.2|
+
+## First melt the data  
+|id|year|month|element|day|value|
+|:---|:---:|:---:|---:|:---|---:|
+|MX17004|2010|01|tmax|d30|27.8|
+|MX17004|2010|01|tmin|d30|14.5|
+|MX17004|2010|02|tmax|d2|27.3|
+|MX17004|2010|02|tmin|d2|14.4|
+|MX17004|2010|02|tmax|d3|24.1|
+|MX17004|2010|02|tmin|d3|14.4|
+
+
+## create date using year, month and day, and drop missing values
+|id|date|element|value|
+|:---|:---:|:---|---:|
+|MX17004|2010-01-30|tmax|27.8|
+|MX17004|2010-01-30|tmin|14.5|
+|MX17004|2010-02-02|tmax|27.3|
+|MX17004|2010-02-02|tmin|14.4|
+|MX17004|2010-02-03|tmax|24.1|
+|MX17004|2010-02-03|tmin|14.4|
+
+## Next cast tmax and tmin
+
+|id|date|tmax|tmin|
+|:---|:---:|---:|---:|
+|MX17004|2010-01-30|27.8|14.5|
+|MX17004|2010-01-30|27.3|14.4|
+|MX17004|2010-02-02|24.1|14.4|
+
+## Multiple types of observational units are stored in the same table.
+- e.g., 
+  - volunteers/doctors and patients
+  - clinic/hospital ward and patients
+  - dental patients and teeth
+  
+## Song,artist and rank in one table
+|year|artist|time|track|date|week|rank|
+|:---:|:---|:---:|:---|:---:|---:|:---:|
+|2000|2 Pac|4:22|Baby Don't Cry|2000-02-26|1|87|
+|2000|2 Pac|4:22|Baby Don't Cry|200-03-04|2|82|
+|2000|2Ge+her|3:15|The Hardest Part of...|2000-09-02|1|91|
+|2000|2Ge+her|3:15|The Hardest Part of...|2000-09-09|2|87|
+|2000|3 Doors Down|3:53|Kryptonite|2000-04-08|1|81|
+|2000|3 Doors Down|3:53|Kryptonite|2000-04-15|2|70|
+
+## Song, artist and rank in one table
+- duplication with artists and times repeated
+- break down into 
+  - artist, song name and time
+  - rank of song and week
+- Relational data 
+- Also require merging the two data set in one table using unique id 
+  
+## Song, artist and time
+|id|artist|track|time|
+|:---|:---|:---|:---:|
+|1|2 Pac|Baby Don't Cry|4:22|
+|2|2Ge+her|The Hardest part of ...|3:15|
+|3|3 Doors Down|Kryptonite|3:53|
+|4|3 Doors Down|Loser|4:24|
+
+## Dates and rank of song
+|id|date|rank|
+|:---|:---:|---:|
+|1|2000-02-26|87|
+|1|2000-03-04|82|
+|1|2000-03-11|72|
+|1|2000-03-18|77|
+|1|2000-03-25|87|
+|1|2000-04-01|94|
+|1|2000-04-08|99|
+|2|2000-09-02|91|
+|2|2000-09-09|87|
+|2|2000-09-16|92|
+|3|2000-04-08|81|
+|3|2000-04-15|70|
+|3|2000-04-22|68|
+|3|2000-04-29|67|
+|3|2000-05-06|66|
+
+## One type in multiple table
+- e.g., 
+  - participants of survey 1 and 2
+  - data of three quarterly reports
+- Add a new column that records the original table
+- Then append the tables
+
+
+## Survey 1 table
+
+|id|age|sex|Knowledge score|
+|:---|---:|:---|---:|
+|FHW01|34|M|70|
+|FHW02|30|F|76|
+|FHW03|38|F|69|
+
+## Survey 2 table
+|id|age|sex|Knowledge score|
+|:---|---:|:---|---:|
+|MPS01|39|M|78|
+|MPS02|40|M|74|
+|MPS03|38|F|70|
+
+## Appended
+
+|id|age|sex|Knowledge score|survey|
+|:---|---:|:---|---:|---:|
+|FHW01|34|M|70|1|
+|FHW02|30|F|76|1|
+|FHW03|38|F|69|1|
+|MPS01|39|M|78|2|
+|MPS02|40|M|74|2|
+|MPS03|38|F|70|2|
