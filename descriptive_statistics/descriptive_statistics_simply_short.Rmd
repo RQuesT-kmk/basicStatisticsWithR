@@ -1,0 +1,151 @@
+---
+title: "Descriptive Statistics"
+author: "Kaung Myat Khant"
+date: "`r Sys.Date()`"
+output: 
+    powerpoint_presentation:
+        keep_md: TRUE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      message = F,
+                      warning = F,
+                      comment = "")
+```
+
+## Outline  
+
+1.  Classify data and check errors or missing values  
+
+2.  Visualize and explore the data  
+
+3.  Measure Centrl tendency  
+
+4.  Measure Dispersion  
+
+5.  Outliers  
+
+## Classify data  
+
+-   Numerical or Categorical  
+
+-   Numerical --> Continuous or Discrete    
+
+-   Categorical --> Nominal or Ordinal    
+
+## Error checking  
+
+-   Categorical data --> Category check
+
+-   Numerical data --> Range check  
+
+## Missing values  
+
+-   Check the missing codes [NAs or user defined NA or tagged NA like -9,99]  
+
+-   Investigate the reason for missing  
+    -   Completely at random  
+    -   At random  
+    -   Not at random  
+    
+## Data visualization and exploring data  
+
+-   Numerical variables  
+    -   Histogrm   
+    -   Boxplot
+
+-   Categorical variables  
+    -   Bar graph  
+    -   Pie chart  
+    
+##  Measures of centrl tendency  
+
+-   Numerical variable 
+    -   if symmetric without extreme value --> arithmetic mean  
+    -   if positive skewed --> geometric mean  
+    -   if outliers pull the mean --> trimmed mean  
+    -   Median is more robust to skewed data
+
+##  Measures of centrl tendency   
+
+-   Ordinal variable  
+    -   mode or median  
+    -   mean for comparing two group  
+    
+-   Nominal variable --> mode  
+
+-   Arithmetic mean is useful for inferential statistics or total 
+
+## Measures of dispersion  
+
+-   Range shows the total spread: minimum and maximum  
+
+-   Standard deviation shows average spread for the normally distributed data  
+    -   2SD - mean + 2SD is 95% of data for normal distribution
+
+-   Interquartile range show spread of central 50%  of data
+    -   Inter-decile range shows middle 80% of data
+
+-   Coefficient of variation CV shows relative variability  
+
+## Outlier  
+
+-   Can be seen in box-plot and stem and leaf plot  
+
+-   Beyond 1.5 times IQR from the Q1 & Q3  
+
+-   Needs investigation  
+    -   natural outlier or errors  
+    
+    
+```{r data, include=FALSE}
+sbp <- c(110, 112, 115, 120, 122, 122, 124, 125, 128, 130, 130, 132, 135, 138, 140, 142, 145, 150, 155, 175)
+library(tidyverse)
+library(patchwork)
+```
+
+## Systolic Blood Pressure (SBP) in 20 Patients (mmHg) after a 4-week trial of Medication X  
+
+```{r Dataframe, include=TRUE}
+df <- data.frame(sbp =sbp)
+df |> slice_head(n =10) |> 
+    knitr::kable()
+```
+
+## Histograms
+
+```{r hist, include=TRUE}
+binsturge <- ggplot(df)+geom_histogram(aes(sbp), binwidth = 10.83)
+bin_num1 <- ggplot(df)+geom_histogram(aes(sbp), bins = 30)
+bin_num2 <- ggplot(df)+geom_histogram(aes(sbp), bins = 3)
+binsturge+bin_num1+bin_num2
+```
+
+## Boxplot
+```{r box, include=TRUE}
+ggplot(df)+geom_boxplot(aes(sbp))
+```
+
+## Stem and leaf
+```{r stem, include=TRUE}
+stem(df$sbp) 
+```
+
+## Summary table
+```{r tab, include=TRUE}
+df |> 
+    summarise(
+        Mean = mean(sbp),
+        Median = median(sbp),
+        SD = sd(sbp),
+        IQR = IQR(sbp),
+        Q1 = quantile(sbp, 0.25),
+        Q3 = quantile(sbp,0.75)
+    ) |> 
+    pivot_longer(cols = everything(),
+                 names_to = "Measures",
+                 values_to = "SBP") |> 
+    knitr::kable(digits = 2)
+```
+
