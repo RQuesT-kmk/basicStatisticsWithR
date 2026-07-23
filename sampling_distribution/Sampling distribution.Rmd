@@ -1,0 +1,257 @@
+---
+title: "Sampling distribution"
+author: "Kaung Myat Khant"
+date: "2026-07-16"
+output: powerpoint_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      comment = "")
+```
+
+## Definition of sampling distribution
+
+-   Theoretical distribution\
+-   A series of statistic from independent random samples of *same size* from *same population*\
+-   Shape and spread depends on sample size (n) and variation in parent population
+
+```{r getData, include=FALSE}
+library(tidyverse)
+
+# Set a seed so that our "random" population is exactly the same every time we run this code
+set.seed(42)
+
+# 1. Define the Gamma distribution parameters
+# Target mean = 130. 
+# We chose a shape of 20 to give us a good right-skew and realistic variance.
+# Since Mean = shape * scale, then scale = Mean / shape.
+target_mean <- 130
+shape_param <- 20
+scale_param <- target_mean / shape_param
+
+# 2. Generate the population data frame
+# We use tibble() to create a clean, modern data frame
+population_data <- tibble(
+    patient_id = 1:1000,
+    sbp = rgamma(n = 1000, shape = shape_param, scale = scale_param)
+)
+population_data <- population_data |> 
+    filter(sbp >= 90 & sbp <= 190) 
+    
+
+# 3. Calculate and save the exact population mean
+pop_mean <- mean(population_data$sbp)
+```
+
+## Hypothetical population data
+
+-   1000 population of \>50 years old women
+
+-   Gamma distribution to get a right skewed distribution
+
+-   Get the range of systolic blood pressure between 90mmHg and 190mmHg
+
+-   The population mean is `r round(pop_mean)`.
+
+## Distribution of the data
+
+```{r distribution_population, include=TRUE}
+# 4. Create a plot to visualize the right skew and the population mean line
+ggplot(data = population_data, aes(x = sbp)) +
+    geom_histogram(fill = "steelblue", color = "white", bins = 40) +
+    # Add the vertical line for our population mean
+    geom_vline(xintercept = pop_mean, color = "red", linetype = "dashed", linewidth = 1.2) +
+    annotate(
+        geom = "text", 
+        x = pop_mean + 3,    # Places the text slightly to the right of the line
+        y = 80,              # Sets the height of the text (adjust if your y-axis changes)
+        label = paste("Mean =", round(pop_mean, 2)), 
+        color = "red", 
+        fontface = "bold",
+        hjust = 0            # Left-aligns the text so it flows away from the line
+    ) +
+    coord_cartesian(xlim = c(90, 190)) +
+    labs(
+        title = "Hypothetical Population: Systolic Blood Pressure",
+        subtitle = paste("908 Women over 50 | Population Mean =", round(pop_mean, 2), "mmHg"),
+        x = "Systolic Blood Pressure (mmHg)",
+        y = "Number of Women"
+    ) +
+    theme_minimal()
+```
+
+## Sampling
+
+-   From this population of 908 women, **1000 samples** will be taken 3 ways
+    1.  **5 women** in each sample
+    2.  **30 women** in each sample
+    3.  **100 women** in each sample
+-   Then, we calculate the **sample statistic(mean)** of each sample and distribute along the X axis
+
+## Sample Statistics
+
+```{r sample, include=F}
+# Define the number of simulations we want to run
+n_sims <- 1000
+
+# 1. Simulate the sampling process
+# replicate() repeats the sampling process 1000 times.
+# sample() draws 'size' number of blood pressures from our population data.
+means_n5   <- replicate(n_sims, mean(sample(population_data$sbp, size = 5, replace = TRUE)))
+means_n30  <- replicate(n_sims, mean(sample(population_data$sbp, size = 30, replace = TRUE)))
+means_n100 <- replicate(n_sims, mean(sample(population_data$sbp, size = 100, replace = TRUE)))
+
+# 2. Build individual data frames for each group
+# This follows your exact "Group" and "Value" structure
+df_pop <- tibble(
+    Group = "1. Population",
+    Value = population_data$sbp
+)
+
+df_n5 <- tibble(
+    Group = "2. Sample Means (n=5)",
+    Value = means_n5
+)
+
+df_n30 <- tibble(
+    Group = "3. Sample Means (n=30)",
+    Value = means_n30
+)
+
+df_n100 <- tibble(
+    Group = "4. Sample Means (n=100)",
+    Value = means_n100
+)
+
+# 3. Stack everything into a single master data frame
+master_data <- bind_rows(df_pop, df_n5, df_n30, df_n100)
+
+# Optional but recommended: Turn 'Group' into a factor to lock in the sorting order.
+# Because you cleverly added "1., 2., 3., 4." to the names, it will naturally sort well, 
+# but making it a factor ensures ggplot2 respects this exact order.
+master_data <- master_data %>%
+    mutate(Group = factor(Group))
+
+
+```
+
+```{r sampling_data, include=T}
+# Take a quick peek at the structure of our new master dataset
+
+master_data |> 
+    group_by(Group) |> 
+    summarise(Size = n(),
+              Mean = mean(Value),
+              Median = median(Value),
+              SD = sd(Value),
+              Q1 = quantile(Value, 0.25),
+              Q3 = quantile(Value, 0.75),
+              Min = min(Value),
+              Max = max(Value)
+              ) |> 
+    knitr::kable(align = c("l","r","r","r","r","r","r","r","r"),
+                 digits = 1)
+
+```
+
+## Sampling Distribution
+
+-   When the sample size is large enough\
+-   Distribution of the sample means follows **Normal distribution**\
+-   **Mean of the samples' means** is equal to **True Population mean** ($\bar{X}=\mu$)
+
+$$ \bar{X} = \frac{\sum_{i=1}^{n}{X_i}}{n}$$
+
+## Distribution of Sample means
+
+```{r distribution of sample mean, include=T, fig.width=8}
+# Create the ultimate Central Limit Theorem visualization
+ggplot(data = master_data, aes(x = Value)) +
+    # Draw the histograms (we use a density stat so the y-axis represents proportions, 
+    # which makes comparing different curve shapes much cleaner, though counts work too!)
+    geom_histogram(fill = "steelblue", color = "white", bins = 40) +
+    
+    # Property A: Unbiasedness (The red dashed line for Population Mean)
+    geom_vline(xintercept = pop_mean, color = "red", linetype = "dashed", linewidth = 1) +
+    
+    # Property B & C: The 2x2 Grid with a locked x-axis and free y-axis
+    facet_wrap(~ Group, ncol = 2, scales = "free_y") +
+    
+    # Lock the x-axis view from 90 to 190 as requested
+    coord_cartesian(xlim = c(90, 190)) +
+    
+    # Add clear labels for the presentation
+    labs(
+        title = "Demonstrating the Central Limit Theorem",
+        subtitle = paste("Red dashed line = True Population Mean (", round(pop_mean, 2), " mmHg)", sep = ""),
+        x = "Systolic Blood Pressure (mmHg)",
+        y = "Frequency"
+    ) +
+    
+    # A clean theme perfect for PowerPoint slides
+    theme_minimal(base_size = 14) +
+    theme(
+        strip.text = element_text(face = "bold", size = 12), # Makes the 1, 2, 3, 4 labels pop
+        panel.spacing = unit(1, "lines") # Adds a little breathing room between the 4 plots
+    )
+```
+
+
+## Distribution of the estimates
+
+-   *Mean of Sample means*$(\bar{X})$= `r round(pop_mean)`
+-   Standard error of the mean (***SEM***) measures the variability of the distribution
+-   If population SD is known, $SEM = \frac{\sigma }{\sqrt{n}}$
+-   if only one sample SD is known, $SEM = \frac{s}{\sqrt{n}}$
+-   Large *SEM* - Imprecise estimate
+-   Small *SEM* - Precise estimate
+
+
+## Standard error of the estimate
+```{r SEM, include=TRUE}
+sem <- data.frame(
+    SEM=c(
+        sd(population_data$sbp)/sqrt(length(population_data$sbp)),
+        sd(sample(population_data$sbp, size = 5, replace = TRUE))/sqrt(5),
+        sd(sample(population_data$sbp, size = 30, replace = TRUE))/sqrt(30),
+        sd(sample(population_data$sbp, size = 100, replace = TRUE))/sqrt(100),
+        sd(sample(population_data$sbp, size = 500, replace = TRUE))/sqrt(500)
+    ),
+    Mean=c(
+        mean(population_data$sbp),
+        mean(sample(population_data$sbp, size = 5, replace = TRUE)),
+        mean(sample(population_data$sbp, size = 30, replace = TRUE)),
+        mean(sample(population_data$sbp, size = 100, replace = TRUE)),
+        mean(sample(population_data$sbp, size = 500, replace = TRUE))
+    ),
+    N = c(length(population_data$sbp),5,30,100,500), 
+    ID = c("Population",as.character(1:4))
+)
+sem |> 
+    select(ID,N, Mean, SEM) |> 
+    knitr::kable(align = c("l","r","r","r"),
+                 digits = 1)
+
+```
+
+## Central limits theorem
+
+-   As sample size increases, the distribution of sample means approaches a normal curve regardless of the original population's shape.
+-   The sampling distribution stays centred at the true population mean and its variance is $\frac{population\ variance}{sample\ size}$ 
+-   Standard error decreases as sample size grows
+-   The Central Limit Theorem and sampling distribution are foundation for inferential statistics.
+
+
+## Use in inferential statistics
+
+-   **Confidence Interval (CI)**: 
+$$Estimator \pm Reliability\ Coefficient \times Standard\ Error$$
+
+-   **Test Statistic (for P-values)**:
+
+$$\frac{Relevant\ Statistic - Hypothesized\ Parameter}{Standard\ error}$$
+
+# Thank you
