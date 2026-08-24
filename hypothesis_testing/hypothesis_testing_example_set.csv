@@ -1,0 +1,41 @@
+patient_id,group,sbp_pre,sbp_post,sbp_change
+1,Active Drug,159,146,-13
+2,Active Drug,139,121,-18
+3,Active Drug,149,140,-9
+4,Active Drug,151,130,-21
+5,Active Drug,149,123,-26
+6,Active Drug,144,132,-12
+7,Active Drug,160,139,-21
+8,Active Drug,144,141,-3
+9,Active Drug,165,147,-18
+10,Active Drug,144,134,-10
+11,Active Drug,158,146,-12
+12,Active Drug,168,147,-21
+13,Active Drug,131,129,-2
+14,Active Drug,142,132,-10
+15,Active Drug,144,130,-14
+16,Active Drug,151,138,-13
+17,Active Drug,142,132,-10
+18,Active Drug,118,104,-14
+19,Active Drug,121,82,-39
+20,Active Drug,158,145,-13
+21,Placebo,142,136,-6
+22,Placebo,127,125,-2
+23,Placebo,143,145,2
+24,Placebo,157,165,8
+25,Placebo,164,155,-9
+26,Placebo,141,148,7
+27,Placebo,142,142,0
+28,Placebo,127,132,5
+29,Placebo,150,154,4
+30,Placebo,139,142,3
+31,Placebo,150,139,-11
+32,Placebo,152,148,-4
+33,Placebo,155,157,2
+34,Placebo,139,128,-11
+35,Placebo,150,143,-7
+36,Placebo,128,130,2
+37,Placebo,137,140,3
+38,Placebo,136,137,1
+39,Placebo,121,111,-10
+40,Placebo,145,133,-12
