@@ -22,11 +22,11 @@ rm(list = ls())
 library(readr) # to load data
 library(ggplot2) # to draw the normal distribution curve
 library(dplyr) # to manipulate data
-source(here::here("codes/z_curves_for_hypothesis_testing.R")) #load my own function
+source(here::here("z_curves_for_hypothesis_testing.R")) #load my own function
 
 # Get data ----------------------------------------------------------------
 
-data <- read_csv(here::here("data/hypothesis_testing_example_set.csv"))
+data <- read_csv(here::here("hypothesis_testing_example_set.csv"))
 str(data)
 sbp <- data |> select(sbp_pre) |> pull(sbp_pre)
 length(sbp)
