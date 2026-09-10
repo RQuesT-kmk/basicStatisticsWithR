@@ -6,7 +6,7 @@
 # Date: 24 Aug 2026
 # Data: hypothesis_testing_example_set.csv
 # Reference: Biostatistics: Foundation for analysis in health science (10ed)
-# Modified: 
+# Modified: 10 Sep 2026
 # =========================================================================
 
 
@@ -44,6 +44,8 @@ print("Data is continuous numeric data")
 print("Sample size is 40.")
 print("Sample size of 30 is rule of thumb for choosing test statistics.")
 
+hist(sbp)
+qqnorm(sbp)
 xbar <- mean(sbp, na.rm = T) ; xbar
 sd <- sd(sbp, na.rm = T) ; sd
 n <- length(sbp); n
@@ -62,8 +64,8 @@ print("2. The patients are independent from each other(e.g., no twins)")
 
 # 3. Hypotheses -----------------------------------------------------------
 
-print("H0: xbar == mu") ; paste("H0: mu =",mu)
-print("HA: xbar != mu") ; paste("HA: mu !=",mu)
+print("H0: xbar == mu") ; paste("H0: xbar =",mu)
+print("HA: xbar != mu") ; paste("HA: xbar !=",mu)
 
 # 4. Test statistics ------------------------------------------------------
 
