@@ -1,0 +1,170 @@
+---
+title: "The F-Distribution & One-Way ANOVA"
+subtitle: "A Concise Guide to Variance Ratios, ANOVA, and Post-Hoc Comparisons"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(ggplot2)
+```
+
+## 1. Executive Summary & Core Concept
+
+* **Statistical Foundation**: Developed by Sir Ronald A. Fisher in the 1920s.
+* **Core Function**: Measures the ratio of two independent sample variances.
+* **Primary Purpose**: Evaluates variability across multiple groups simultaneously.
+* **Key Metric**: The **Variance Ratio** ($F = \text{Between-Group Variance} / \text{Within-Group Variance}$).
+* **Main Advantage**: Controls family-wise Type I error rates across $k$ groups.
+
+---
+
+## 2. Mathematical Definition & Key Properties
+
+* **Ratio of Chi-Squares**: Ratio of two independent chi-square variables divided by their degrees of freedom.
+* **Parameter Pair**: Governed by numerator $df_1 = n_1 - 1$ and denominator $df_2 = n_2 - 1$.
+* **Non-Negative Support**: Always $F \ge 0$ since variances are non-negative.
+* **Asymmetric Shape**: Positively skewed with a long right tail.
+* **Reciprocal Property**: Lower percentiles satisfy $F_{\alpha, df_1, df_2} = 1 / F_{1-\alpha, df_2, df_1}$.
+* **Special Equivalence**: For $k = 2$ groups, the $F$-statistic equals Student's $t^2$ ($F = t^2$).
+
+---
+
+## 3. Behavior & Interpretation
+
+* **Null Scenario ($F \approx 1$)**:
+  * Between-group variation matches background noise.
+  * Group mean differences are likely due to random chance.
+* **Alternative Scenario ($F \gg 1$)**:
+  * Between-group variation significantly exceeds random variation.
+  * Signals genuine treatment or group differences.
+* **Underlying Assumptions**:
+  * Normally distributed populations.
+  * Homogeneity of variance (equal group variances).
+  * Independent sampling of observations.
+
+---
+
+## 4. Scope of Applications
+
+* **Variance Ratio Test**: Compares two population variances ($H_0: \sigma_1^2 = \sigma_2^2$).
+* **One-Way ANOVA**: Tests equality of $k$ group means ($H_0: \mu_1 = \mu_2 = \dots = \mu_k$).
+* **Advanced Designs**: Applies to Randomized Complete Block, Factorial, and Repeated Measures ANOVA.
+* **Multivariable Regression**: Tests overall model significance ($F = MSR / MSE$) and extra sums of squares.
+
+---
+
+## 5. One-Way ANOVA Hypothesis Testing Example
+
+### Study Design & Raw Data
+* **Context**: Testing 3 weight-loss diets ($k = 3$) across $N = 9$ subjects ($n_j = 3$ per diet) .
+* **Diet 1 ($Group_1$)**: 4, 5, 6 pounds lost.
+* **Diet 2 ($Group_2$)**: 7, 8, 9 pounds lost.
+* **Diet 3 ($Group_3$)**: 10, 11, 12 pounds lost.
+
+### Step-by-Step Calculation Summary
+* **Group Means**: $\bar{x}_1 = 5$, $\bar{x}_2 = 8$, $\bar{x}_3 = 11$.
+* **Grand Mean**: $\bar{x}_{..} = (5 + 8 + 11) / 3 = 8$.
+* **Sum of Squares Among ($SSA$)**: $3(5-8)^2 + 3(8-8)^2 + 3(11-8)^2 = 54$.
+* **Among Degrees of Freedom ($df_A$)**: $k - 1 = 3 - 1 = 2$.
+* **Mean Square Among ($MSA$)**: $SSA / df_A = 54 / 2 = 27$.
+* **Sum of Squares Within ($SSW$)**: $(1+0+1) + (1+0+1) + (1+0+1) = 6$.
+* **Within Degrees of Freedom ($df_W$)**: $N - k = 9 - 3 = 6$.
+* **Mean Square Within ($MSW$)**: $SSW / df_W = 6 / 6 = 1$.
+* **Calculated $F$-Statistic**: $F = MSA / MSW = 27 / 1 = 27$.
+
+### ANOVA Summary Table
+
+| Source of Variation | Sum of Squares ($SS$) | Degrees of Freedom ($df$) | Mean Square ($MS$) | $F$-Value |
+| :--- | :---: | :---: | :---: | :---: |
+| **Among Groups** | 54 | 2 | $MSA = 27$ | **$F = 27.0$** |
+| **Within Groups** | 6 | 6 | $MSW = 1$ | — |
+| **Total** | 60 | 8 | — | — |
+
+* **Decision**: Computed $F = 27$ far exceeds the critical value $F_{0.05, 2, 6} = 5.14$ ($P < 0.001$), confirming statistically significant differences among the three diets.
+
+---
+
+## 6. Post-Hoc Pairwise Comparisons (Tukey HSD & Bonferroni)
+
+* **Why Post-Hoc Testing Is Essential**:
+  * An overall $F$-test indicates *that* group means differ, but not *which* specific pairs differ.
+  * Running multiple unadjusted $t$-tests inflates the overall Type I error rate.
+  * Post-hoc tests pinpoint specific pairwise differences while maintaining error control.
+
+* **Tukey's Honestly Significant Difference (HSD)**:
+  * **Method**: Uses the Studentized Range distribution to calculate a single critical threshold for all pairwise differences.
+  * **Best Used For**: All possible pairwise comparisons among group means.
+  * **Key Feature**: Maintains exact family-wise error rate $\alpha$ without being overly conservative.
+  * **In R**: Evaluated via `TukeyHSD(anova_model)`.
+
+* **Bonferroni Adjustment**:
+  * **Method**: Adjusts significance threshold to $\alpha / m$ (or multiplies $p$-values by $m$, where $m = k(k-1)/2$ comparisons).
+  * **Best Used For**: Small set of pre-planned or custom pairwise comparisons.
+  * **Key Feature**: Highly robust and versatile, but can become overly conservative as $k$ grows.
+  * **In R**: Evaluated via `pairwise.t.test(..., p.adjust.method = "bonferroni")`.
+
+---
+
+## 7. Complete R Code Implementation
+
+```{r implementR1, include=TRUE}
+# --- 1. Load Study Data ---
+diet_data <- data.frame(
+  Diet = factor(rep(c("Diet 1", "Diet 2", "Diet 3"), each = 3)),
+  WeightLoss = c(4, 5, 6, 7, 8, 9, 10, 11, 12)
+)
+
+# --- 2. Fit One-Way ANOVA Model ---
+anova_model <- aov(WeightLoss ~ Diet, data = diet_data)
+
+# --- 3. Display ANOVA Summary Table ---
+summary(anova_model)
+```
+
+```{r fDistribution, include=TRUE}
+# --- 4. Plot F-Distribution Curve & Test Statistic ---
+f_stat <- summary(anova_model)[[1]][["F value"]][1]
+df1 <- summary(anova_model)[[1]][["Df"]][1]
+df2 <- summary(anova_model)[[1]][["Df"]][2]
+
+x_vals <- seq(0, 30, length.out = 500)
+y_vals <- df(x_vals, df1, df2)
+plot_df <- data.frame(x = x_vals, y = y_vals)
+criticalF <- qf(p = 1-0.05, df1 = 2, df2 = 6)
+ggplot(plot_df, aes(x = x, y = y)) +
+  geom_line(color = "navy", size = 1) +
+  geom_vline(xintercept = f_stat, color = "forestgreen", linetype = "solid", size = 1) +
+  geom_vline(xintercept = criticalF, color = "firebrick", linetype = "dashed", size = 1) +
+  labs(
+    title = "F-Distribution Curve (df1 = 2, df2 = 6)",
+    subtitle = paste("Calculated F-Statistic(green) =", f_stat, "(P < 0.001),",
+                     "Critical F-value(firecolor) =", round(criticalF,2), "(alpha =0.05)"),
+    x = "F Value",
+    y = "Probability Density"
+  ) +
+  theme_minimal()
+```
+
+
+```{r postHoc, include=TRUE}
+# --- 5. Post-Hoc Comparisons: Tukey HSD ---
+cat("\n--- Tukey HSD Pairwise Comparisons ---\n")
+tukey_results <- TukeyHSD(anova_model)
+print(tukey_results)
+
+# --- 6. Post-Hoc Comparisons: Bonferroni Adjustment ---
+cat("\n--- Bonferroni Adjusted Pairwise t-Tests ---\n")
+bonf_results <- pairwise.t.test(
+  x = diet_data$WeightLoss,
+  g = diet_data$Diet,
+  p.adjust.method = "bonferroni"
+)
+print(bonf_results)
+```
