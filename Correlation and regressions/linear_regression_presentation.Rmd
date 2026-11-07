@@ -1,0 +1,241 @@
+---
+title: "Linear Regression"
+author: "Kaung Myat Khant"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(ggplot2)
+```
+
+# Introduction & Core Concept
+
+## The Three Pillars of Linear Regression
+
+Linear regression quantifies the relationship between variables through three fundamental steps:
+
+1. **Fit a line to the data** using **Least Squares**
+2. **Calculate $R^2$** to quantify how much variation is explained
+3. **Calculate a $p$-value for $R^2$ or slope (beta)** (via the $F$-statistic) to ensure the relationship is statistically significant
+
+> Both a **large $R^2$** and a **small $p$-value** are required for a meaningful result.
+
+---
+
+## Example: Mouse Weight vs Size
+
+To make these concepts clear, we use a simple, concrete dataset:
+- **Predictor variable ($X$)**: Mouse Weight
+- **Outcome variable ($Y$)**: Mouse Size
+
+```{r mouse-data, echo=FALSE}
+mouse_df <- data.frame(
+    size  = c (1.4,2.6,1.0,3.7,5.5,3.2,3.0,4.9,6.3),
+    weight = c(0.9, 1.8, 2.4,3.5,3.9, 4.4, 5.1,5.6,6.3),
+    tail = c(0.7, 1.3, 0.7, 2.0, 3.6, 3.0, 2.9, 3.9, 4.0)
+)
+
+ggplot(mouse_df, aes(x = weight, y = size)) +
+  geom_point(color = "darkblue", size = 3) +
+  labs(title = "Mouse Size vs. Mouse Weight", x = "Mouse Weight (g)", y = "Mouse Size (cm)") +
+  theme_minimal(base_size = 12)
+```
+
+## Residuals and the Sum of Squared Residuals
+
+* **Residual**: The vertical distance from an observed data point to the candidate line.
+$$\text{Residual}_i = y_i - \hat{y}_i$$
+
+* **Sum of Squared Residuals ($SS_{\text{fit}}$)**:
+$$SS_{\text{fit}} = \sum_{i=1}^n (y_i - \hat{y}_i)^2$$
+
+By squaring the residuals:
+- Negative and positive distances don't cancel each other out.
+- Larger errors are penalized more heavily.
+
+
+
+## The Least Squares Rotation Process
+
+1. Draw an initial line through the dataset.
+2. Measure the vertical distance (residual) from each point to the line.
+3. Square each distance and sum them together.
+4. Slightly rotate the line and re-calculate the sum of squared residuals.
+5. Identify the rotation angle that yields the **minimum (least) sum of squared residuals**.
+
+```{r least-squares-plot, echo=FALSE}
+fit <- lm(size ~ weight, data = mouse_df)
+mouse_df$predicted <- predict(fit)
+
+ggplot(mouse_df, aes(x = weight, y = size)) +
+  geom_segment(aes(xend = weight, yend = predicted), color = "red", linetype = "dashed") +
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +
+  geom_point(color = "darkblue", size = 3) +
+  labs(title = "Least Squares Fit & Residuals", x = "Mouse Weight (g)", y = "Mouse Size (cm)") +
+  theme_minimal(base_size = 12)
+```
+
+
+
+## The Fitted Line Equation
+
+The least squares procedure estimates two key parameters:
+$$y = a + b \cdot x$$
+
+- **$a$ (y-intercept)**: The baseline value of $y$ when $x = 0$.
+- **$b$ (slope)**: The estimated change in $y$ for every 1-unit increase in $x$.
+
+> A non-zero slope indicates that knowing the predictor ($x$) provides information about the outcome ($y$).
+
+## Quantifying Fit with $R^2$
+
+### Variation Around the Mean vs. Variation Around the Fit
+
+To measure how well the line fits:
+
+1. **Variation Around the Mean ($SS_{\text{mean}}$)**:
+   - Calculate mean of the outcome ($y$) (ignore predictor $x$).
+   - Calculate variance around the average outcome $\bar{y}$:  
+   
+   $$SS_{\text{mean}} = \sum (y_i - \bar{y})^2, \quad \text{Var}(\text{mean}) = \frac{SS_{\text{mean}}}{n}$$
+
+2. **Variation Around the Fit ($SS_{\text{fit}}$)**:
+   - Calculate variance around the fitted line:  
+   
+   $$SS_{\text{fit}} = \sum (y_i - \hat{y}_i)^2, \quad \text{Var}(\text{fit}) = \frac{SS_{\text{fit}}}{n}$$
+
+
+
+### $R^2$ Definition & Formula
+
+$R^2$ quantifies the **percentage reduction in variance** achieved by including the predictor:
+
+$$R^2 = \frac{\text{Var}(\text{mean}) - \text{Var}(\text{fit})}{\text{Var}(\text{mean})} = \frac{SS_{\text{mean}} - SS_{\text{fit}}}{SS_{\text{mean}}}$$
+
+### Interpreting $R^2$ Values:
+- **$R^2 = 1.0$ ($100\%$)**: Perfect fit; line passes through all points.
+- **$R^2 = 0.60$ ($60\%$)**: 60% of the variation in size is explained by weight.
+- **$R^2 = 0.0$ ($0\%$)**: Predictor provides no useful information.
+
+
+
+## Multiple Regression & Adjusted R square
+
+### Expanding to Multiple Predictors
+- Adding variables (e.g., body length predicted by weight AND tail length) expands the fit from a 2D line to a 3D plane (or hyperplane).
+
+### The Overfitting Problem
+- Adding parameters will **never decrease** raw $R^2$, because least squares can zero out useless parameters.
+- Random noise variables can artificially inflate $R^2$ by chance.
+
+### Solution: Adjusted $R^2$
+Penalizes $R^2$ based on the number of added parameters to prevent misleadingly high values from extra noise variables.
+
+## Assessing Significance with $p$-Values
+
+### Why $R^2$ Alone Is Not Enough
+
+- Any 2 data points can be connected by a perfect straight line, yielding $R^2 = 1.0$ (100%).
+- However, an $R^2 = 1.0$ from only 2 samples has no statistical reliability.
+- We need a **$p$-value** to determine if the calculated $R^2$ could have occurred purely by random chance.
+
+
+
+### The $F$-Statistic
+
+The $p$-value for $R^2$ is derived from the **$F$-statistic**, which compares explained variance to unexplained variance:
+
+$$F = \frac{\text{Variation explained by predictor(s)}}{\text{Variation NOT explained by predictor(s)}}$$
+
+### Detailed Formula with Degrees of Freedom:
+$$F = \frac{\frac{SS_{\text{mean}} - SS_{\text{fit}}}{p_{\text{fit}} - p_{\text{mean}}}}{\frac{SS_{\text{fit}}}{n - p_{\text{fit}}}}$$
+
+Where:
+- $p_{\text{fit}}$ = number of parameters in the fit model (e.g., 2 for intercept + slope)
+- $p_{\text{mean}}$ = number of parameters in the mean model (1 for intercept)
+- $n$ = total sample size
+
+
+
+## $F$-Statistic Simulation & $p$-Value Calculation
+
+1. **Simulation Thought Experiment**:
+   - Generate thousands of random datasets with no real relationship.
+   - Calculate the $F$-statistic for each dataset and build an $F$-distribution.
+
+2. **Calculating the $p$-Value**:
+   - Locate the observed $F$-statistic on the distribution curve.
+   - The $p$-value is the proportion of random outcomes as extreme as or more extreme than the observed $F$.
+
+> More sample points ($n$) relative to parameters ($p_{\text{fit}}$) steepen the curve, yielding smaller $p$-values for the same effect size.
+
+
+
+## Summary & Key Takeaways
+
+Linear regression evaluates data relationships through a balanced dual framework:
+
+| Metric | Role | Target Value |
+|:---|:---|:---|
+| R square | Quantifies relationship strength (variance explained) | High (close to 1.0) |
+| P value | Confirms statistical significance (via $F$-test) | Low ($p < 0.05$) |
+
+### Core Rule of Thumb:
+> An interesting and reliable relationship requires **both a large $R^2$ AND a small $p$-value**.   
+
+## R examples and interpretation 1
+
+```{r data, include=TRUE, echo=FALSE}
+mouse <- data.frame(
+    size  = c (1.4,2.6,1.0,3.7,5.5,3.2,3.0,4.9,6.3),
+    weight = c(0.9, 1.8, 2.4,3.5,3.9, 4.4, 5.1,5.6,6.3),
+    tail = c(0.7, 1.3, 0.7, 2.0, 3.6, 3.0, 2.9, 3.9, 4.0)
+)
+head(mouse, n = 10)
+```
+
+## R examples and interpretation  2
+
+### Plotting  simple linear regression  
+
+```{r plotSizeWeight, include=TRUE}
+plot(mouse$weight, mouse$size)
+```
+
+## R examples and interpretation  3
+
+### Simple linear regression  
+
+```{r simple_lm, include=TRUE}
+mouse_lm <- lm(formula = size ~ weight, data = mouse)
+summary(mouse_lm)
+```
+
+## R examples and interpretation  4
+
+### Smoothing simple linear regression  
+
+```{r simpleSmooth}
+plot(mouse$weight, mouse$size)
+abline(mouse_lm, col = "blue")
+```
+
+## R examples and interpretation  5
+
+### Plotting multiple linear regression   
+
+```{r plotMouse}
+plot(mouse)
+```
+
+## R examples and interpretation  6
+
+### Multiple linear regression  
+
+```{r lm_multi}
+mouse_lm_multi <- lm(formula = size ~ weight + tail, data = mouse)
+summary(mouse_lm_multi)
+```
+
