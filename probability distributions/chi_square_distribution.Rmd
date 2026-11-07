@@ -1,0 +1,179 @@
+---
+title: "The Chi-Square Distribution & Categorical Data Analysis"
+subtitle: "A Concise Guide to Goodness-of-Fit, Contingency Tables, and Clinical Inference"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+```
+
+## 1. Core Concepts
+
+-   **Standard Normal Origin**: Derived directly from independent standard normal variables ($z_i \sim N(0,1)$).
+-   **Symbol Distinction**: $\chi^2$ denotes theoretical distribution/test; $X^2$ represents sample test statistic.
+-   **Primary Scope**: Analyzes categorical, binary, count data, and single population variances ($\sigma^2$).
+-   **Cardinal Rule**: Strictly requires actual raw counts of occurrences—never percentages, proportions, or averages.
+-   **Key Metric**: $X^2 = \sum \frac{(O - E)^2}{E}$ measures discrepancy between observed ($O$) and expected ($E$) counts.
+
+------------------------------------------------------------------------
+
+## 2. Mathematical Derivation & Key Parameters (Daniel 10th Ed.)
+
+-   **Single Variable Relation**: Square of a standard normal score ($z^2$) follows $\chi^2$ with 1 degree of freedom.
+-   **Summation Formula**: $\chi_{(k)}^2 = \sum_{i=1}^k z_i^2$ for $k$ independent standard normal variables.
+-   **Mean Parameter**: Equal to its degrees of freedom ($\mu = k$).
+-   **Variance Parameter**: Equal to twice its degrees of freedom ($\sigma^2 = 2k$).
+-   **Mode Parameter**: Equal to $k - 2$ for $k \ge 2$ ($0$ for $k = 1$).
+-   **Non-Negative Domain**: Values range from $0$ to $+\infty$ ($0 \le \chi^2 < \infty$).
+-   **Asymmetric Curve**: Positively skewed with right tail; becomes symmetrical as $df \to \infty$.
+-   **Additive Property**: Sum of two independent chi-square variables is also a chi-square variable.
+
+------------------------------------------------------------------------
+
+## 3. Scope of Applications 
+
+-   **Single Population Variance**: Inference for $\sigma^2$ via $\chi^2 = \frac{(n-1)s^2}{\sigma^2}$ with $df = n-1$.
+-   **Goodness-of-Fit Tests**: Compares sample frequencies against theoretical distributions (Normal, Poisson, etc.).
+-   **Contingency Tables (**$r \times c$): Tests of Independence and Homogeneity with $df = (r-1)(c-1)$.
+-   $2 \times 2$ Fourfold Tables: Compares two proportions with Yates's continuity correction or Fisher's Exact Test.
+-   **Trend Test in Proportions**: Evaluates ordered categorical data using linear scoring.  
+
+-   **Paired Binary Outcomes**: Evaluates repeated binary measures using McNemar's test ($X^2 = \frac{(f-g)^2}{f+g}$).
+-   **Survival Analysis**: Compares survival curves between independent groups using the log-rank test.
+-   **Nonparametric Limit**: Asymptotic limiting distribution for Kruskal-Wallis ($H$) and Friedman ($\chi_r^2$) tests.
+
+------------------------------------------------------------------------
+
+## 4. Step-by-Step $2 \times 2$ Contingency Table Example
+
+### Study Scenario & Raw Counts ($O$)
+
+-   **Context**: Evaluating whether a new study guide influences exam pass rates ($N = 40$ students).
+-   **Study Guide & Passed**: 15 students ($a$).
+-   **Study Guide & Failed**: 5 students ($b$).
+-   **No Guide & Passed**: 5 students ($c$).
+-   **No Guide & Failed**: 15 students ($d$).
+
+### Two-by-two table
+
+```{r crosstab, include=TRUE, echo=FALSE}
+# 1. Create the tidy data frame of the counts
+df <- data.frame(
+  Study_Guide = c("Study Guide", "Study Guide", "No Guide", "No Guide"),
+  Result = c("Passed", "Failed", "Passed", "Failed"),
+  Count = c(15, 5, 5, 15)
+)
+
+# 2. Pivot to wide format and calculate row totals using dplyr
+table_df <- df %>%
+  pivot_wider(names_from = Result, values_from = Count) %>%
+  mutate(Total = Passed + Failed)
+
+# 3. Calculate column totals and grand total
+col_totals <- table_df %>%
+  summarise(
+    Study_Guide = "Total",
+    Passed = sum(Passed),
+    Failed = sum(Failed),
+    Total = sum(Total)
+  )
+
+# 4. Combine the table rows with the summary total row
+final_table <- bind_rows(table_df, col_totals)
+
+# Rename the column header for clarity
+names(final_table)[1] <- "Group"
+
+# 5. Render the final table
+knitr::kable(final_table)
+```
+
+### Step-by-Step Calculation
+
+-   **Expected Count Formula**: $E = \frac{\text{Row Total} \times \text{Column Total}}{\text{Grand Total } (N)}$.
+-   **Expected Cell Counts (**$E$): $\frac{20 \times 20}{40} = 10$ for all four cells.
+-   **Guide & Passed Score**: $\frac{(15 - 10)^2}{10} = \frac{25}{10} = 2.5$.
+-   **Guide & Failed Score**: $\frac{(5 - 10)^2}{10} = \frac{25}{10} = 2.5$.
+-   **No Guide & Passed Score**: $\frac{(5 - 10)^2}{10} = \frac{25}{10} = 2.5$.
+-   **No Guide & Failed Score**: $\frac{(15 - 10)^2}{10} = \frac{25}{10} = 2.5$.
+-   **Sum of Cell Scores (**$X^2$): $X^2 = 2.5 + 2.5 + 2.5 + 2.5 = 10.0$.
+-   $2 \times 2$ Shortcut Formula: $X^2 = \frac{N(ad - bc)^2}{(a+b)(c+d)(a+c)(b+d)} = \frac{40(225 - 25)^2}{160,000} = 10.0$.
+-   **Statistical Decision**: Calculated $X^2 = 10.0 > 3.841$ (critical value at $df = 1, \alpha = 0.05$), rejecting $H_0$ ($P < 0.005$).
+
+------------------------------------------------------------------------
+
+## 6. R Code Implementation
+
+```{r r-code-examples}
+# --- 1. Construct 2x2 Matrix for Study Guide Example ---
+guide_matrix <- matrix(c(15, 5, 5, 15), 
+                       nrow = 2, 
+                       byrow = TRUE,
+                       dimnames = list(
+                           Group = c("Guide", "No Guide"),
+                           Result = c("Passed", "Failed")))
+qchisq(p=0.95, df = 1)
+# --- 2. Pearson's Chi-Square Test (Without Continuity Correction) ---
+chisq.test(guide_matrix, correct = FALSE)
+
+# --- 3. Yates's Continuity Correction (For 2x2 Tables) ---
+chisq.test(guide_matrix, correct = TRUE)
+
+# --- 4. Fisher's Exact Test (For Small Expected Counts) ---
+fisher.test(guide_matrix)
+
+# --- 5. Multi-Cell Contingency Table Example (Campbell Suburb Data) ---
+suburb_matrix <- matrix(c(17, 25, 39, 42, 32,
+                          5, 21, 34, 49, 25), 
+                        nrow = 5,
+                        dimnames = list(Suburb = c("Manor", 
+                                                   "Brightside",
+                                                   "Netheredge", 
+                                                   "Ecclesall", 
+                                                   "Fulwood"),
+                                        Unit = c("Poisoning", "Gastro")))
+chisq.test(suburb_matrix)
+
+# --- 6. Plot Chi-Square Distribution Curves across Degrees of Freedom ---
+x_vals <- seq(0, 20, length.out = 500)
+df_list <- c(1, 3, 5, 10)
+
+plot_data <- data.frame()
+for (df_val in df_list) {
+  temp <- data.frame(
+    x = x_vals,
+    y = dchisq(x_vals, df = df_val),
+    df = factor(paste("df =", df_val), levels = paste("df =", df_list))
+  )
+  plot_data <- rbind(plot_data, temp)
+}
+
+ggplot(plot_data, aes(x = x, y = y, color = df)) +
+  geom_line(size = 1) +
+  scale_color_brewer(palette = "Set1") +
+  labs(
+    title = "Chi-Square Distribution Curves Across Degrees of Freedom",
+    subtitle = "Exhibiting Right-Skewness and Convergence Toward Symmetry",
+    x = "Chi-Square Value (X^2)",
+    y = "Probability Density",
+    color = "Degrees of Freedom"
+  ) +
+  theme_minimal()
+```
+
+------------------------------------------------------------------------
+
+## 7. References
+
+1.  **Daniel, Wayne W.** *Biostatistics: A Foundation for Analysis in the Health Sciences* (10th Edition). John Wiley & Sons.
+2.  **Campbell, Michael J.** *Statistics at Square One* (12th Edition). Wiley-Blackwell / BMJ Books.
